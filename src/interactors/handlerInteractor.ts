@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
 import axios from "axios";
 import sharp from "sharp";
+
+
 export class HandlerInteractor implements IhandlerInteractor{
 
     private handlerRepo:IhadlerRepo
@@ -14,26 +16,31 @@ export class HandlerInteractor implements IhandlerInteractor{
     }
 
 
-   async  csvHandler(filePath,webhookUrl) {
+   async csvHandler(filePath:string,webhookUrl:string):Promise<any>{
 
 
     const requestId= uuidv4()
-    
+    const images:any=[]
+  
+console.log(filePath,'filee');
 
      fs.createReadStream(filePath).pipe(csvParser()).on('data',async (row)=>{
-
-        const {'S.No':serilaNumber,'Product Name':productName,'Input Image Urls':inputUrls}=row
+         console.log(row,'<===>');
+        
+           
+        const {'S. No':serilaNumber,'Product Name':productName,'Input Image Urls':inputUrls}=row
         if(!serilaNumber ||!productName||!inputUrls){
             throw new Error('Invalid CSV format')
         }
 
-        const urls=inputUrls.split(',').map((url:string)=>url.trim())
-          
+        const urls:Array<string>=inputUrls.split(',').map((url:string)=>url.trim())
 
+           images.push({productName,inputUrls:urls,outputUrls:[]})
+          
      }).on('end',async ()=>{
         fs.unlinkSync(filePath)
         this.processImages(requestId)
-       return requestId
+        return this.handlerRepo.imageTaskFinder(requestId,images,webhookUrl)
 
      })
        
@@ -42,8 +49,8 @@ export class HandlerInteractor implements IhandlerInteractor{
 
    async  processImages(requestId:string){
 
-        const imageTask=await this.handlerRepo.imageTaskFinder(requestId)
-        const outPutUrls:Array<string>=[]
+        const imageTask=await this.handlerRepo.findTaskStatus(requestId)
+        let  outPutUrls:Array<string>=[]
         if(!imageTask) return 
         for(let image of imageTask.images){
             for(let url of image.inputUrls){
@@ -58,7 +65,7 @@ export class HandlerInteractor implements IhandlerInteractor{
 
                     const outPutUrl=`https://example.com/compressed/${uuidv4()}.jpg`
                      outPutUrls.push(outPutUrl)
-                    return outPutUrl
+                  
                 }catch(error:any){
                     throw new Error(`Failed to process image: ${error.message}`);
 
@@ -66,16 +73,15 @@ export class HandlerInteractor implements IhandlerInteractor{
             }
         }
 
-        return outPutUrls
+        return    this.handlerRepo.updateImageTaskFinder(requestId,outPutUrls)
 
     }
-    getImageTaskStatus(requestId: string): string {
+  getImageTaskStatus(requestId: string): any{
 
-        return this.handlerRepo.findImageTaskStatus(requestId)
+    return this.handlerRepo.findTaskStatus(requestId)
+       
 
-
-        
-    }
+  }
 
 
 

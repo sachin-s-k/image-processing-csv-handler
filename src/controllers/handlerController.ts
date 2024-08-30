@@ -13,27 +13,17 @@ export class HandlerController{
 
      async OnUploadImage(req:Request,res:Response){
 
+     console.log('controller');
      
     try{
         const webhookUrl=req.body.webhookUrl
 
-        const {requestId}= await this.handlerInteractor.csvHandler((req as any).file,webhookUrl)
+        const requestId= await this.handlerInteractor.csvHandler((req as any).file.path,webhookUrl)
 
-        res.json(requestId)
+       return  res.json({requestId})
     }catch(error:any){
-        res.status(error.message)
+        return res.status(error.message)
     }
-
-   
-
-         
-       
-
-   
-
-
-
-
 
      }
 
@@ -41,7 +31,7 @@ export class HandlerController{
 
         const {requestId}=req.params
         const response= await this.handlerInteractor.getImageTaskStatus(requestId)
-        res.json(response)
+        return res.json(response)
 
 
      }

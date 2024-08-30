@@ -22,4 +22,4 @@ const imageTaskSchema:Schema<IimageTask>=new mongoose.Schema({
 
 
 
-export const ImageTask:Model<IimageTask>=mongoose.model<IimageTask>('imageTaskSchema',imageTaskSchema)
+export const ImageTask:Model<IimageTask>=mongoose.model<IimageTask>('imagetask',imageTaskSchema)

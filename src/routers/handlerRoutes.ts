@@ -12,6 +12,6 @@ const handlerRoutes= express.Router()
 
 
    handlerRoutes.post('/upload',upload.single('file'),handlerController.OnUploadImage.bind(handlerController))
-   handlerRoutes.get('/status/:requestid',handlerController.OnFindTaskStatus.bind(handlerController))
+   handlerRoutes.get('/status/:requestId',handlerController.OnFindTaskStatus.bind(handlerController))
 
-  export default handlerRoutes
+export default handlerRoutes

@@ -1,10 +1,11 @@
+import { IimageTask } from "./IimageTask"
 
 
 export interface IhandlerInteractor{
 
-     csvHandler(filePath:string,webhookUrl:string):string
+     csvHandler(filePath:string,webhookUrl:string):any
 
-     getImageTaskStatus(requestId:string):string
+     getImageTaskStatus(requestId:string):Promise<string|null>
 
-
+    processImages(requestId:string):any
 }
