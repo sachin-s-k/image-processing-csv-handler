@@ -1,6 +1,8 @@
 import { Request, Response } from "express"
 import { IhandlerInteractor } from "../interfaces/IhandlerInteractor"
 import { v4 as uuidv4 } from 'uuid'
+import { Iimage } from "../interfaces/Iimage"
+import { IimageTask } from "../interfaces/IimageTask"
   
 
 export class HandlerController{
@@ -31,8 +33,8 @@ export class HandlerController{
      async OnFindTaskStatus(req:Request,res:Response){
 
         const {requestId}=req.params
-        const response= await this.handlerInteractor.getImageTaskStatus(requestId)
-        return res.json(response)
+        const imageTask:IimageTask|null= await this.handlerInteractor.getImageTaskStatus(requestId)
+        return res.json({requestStatus:imageTask?.status})
 
 
      }

@@ -18,9 +18,9 @@ export class HandlerRepo implements IhadlerRepo{
 
   async  findTaskStatus(requestId: string): Promise<IimageTask|null> {
 
-        const image:IimageTask|null=await ImageTask.findOne({requestId})
+        const imageTask:IimageTask|null=await ImageTask.findOne({requestId})
 
-        return image
+           return imageTask
         
     }
 
@@ -36,6 +36,7 @@ export class HandlerRepo implements IhadlerRepo{
     async imageTasKStausUpdate(requestId:string):Promise<IimageTask|null>{
 
         const imageTask=await ImageTask.findOneAndUpdate({requestId},{status:"completed"},{new:true,runValidators:true})
+
         return imageTask
 
     }
