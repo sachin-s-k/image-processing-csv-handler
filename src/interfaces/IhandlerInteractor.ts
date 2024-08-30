@@ -7,5 +7,5 @@ export interface IhandlerInteractor{
 
      getImageTaskStatus(requestId:string):Promise<string|null>
 
-    processImages(requestId:string):any
+    processImages(requestId:string):Promise<IimageTask|null>
 }

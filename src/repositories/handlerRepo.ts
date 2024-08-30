@@ -10,7 +10,8 @@ export class HandlerRepo implements IhadlerRepo{
  async imageTaskFinder(requestId: string, images: Array<Iimage>, webhookUrl: string): Promise<string> {
     const res=await ImageTask.create({requestId,images,webhookUrl,status:'processing'})
         
- 
+      console.log(res,'res');
+      
      return res.requestId
  }
 
@@ -23,11 +24,20 @@ export class HandlerRepo implements IhadlerRepo{
         
     }
 
-   async  updateImageTaskFinder(requestId:string,outPutUrls:Array<string>){
-        const res=await ImageTask.findOneAndUpdate({requestId},{$set:{'images.$[].outputUrls':outPutUrls}},{new:true,runValidators:true})
-console.log(res,'res')
+   async  updateImageTaskFinder(requestId:string,index:number,outPutUrls:Array<string>):Promise<IimageTask |null>{
+    console.log('update');
+    
+        const res=await ImageTask.findOneAndUpdate({requestId},{$set:{[`images.${index}.outputUrls`]:outPutUrls}},{new:true,runValidators:true})
+        console.log('update res' ,res);
+        
+        return res
+    }
 
-        //return res
+    async imageTasKStausUpdate(requestId:string):Promise<IimageTask|null>{
+
+        const imageTask=await ImageTask.findOneAndUpdate({requestId},{status:"completed"},{new:true,runValidators:true})
+        return imageTask
+
     }
        
    

@@ -19,7 +19,8 @@ export class HandlerController{
         const webhookUrl=req.body.webhookUrl
 
         const requestId= await this.handlerInteractor.csvHandler((req as any).file.path,webhookUrl)
-
+        console.log(requestId,'reqq');
+        
        return  res.json({requestId})
     }catch(error:any){
         return res.status(error.message)
