@@ -21,22 +21,29 @@ export class HandlerInteractor implements IhandlerInteractor{
         const requestId = uuidv4();
         const images: any = []
       
+        try{
         // Read the CSV file and populate the images array
         await new Promise<void>((resolve, reject) => {
-          fs.createReadStream(filePath)
-            .pipe(csvParser())
-            .on('data', (row) => {
-              const { 'S. No': serialNumber, 'Product Name': productName, 'Input Image Urls': inputUrls } = row;
+
+          const readStream=fs.createReadStream(filePath).pipe(csvParser())
+        
+            readStream.on('data', (row) => {
+              const { 'S. No': serialNumber, 'Product Name': productName, 'Input Image Urls': inputUrls } = row
               if (!serialNumber || !productName || !inputUrls) {
-                reject(new Error('Invalid CSV format'));
+                console.log('error');
+                readStream.destroy() // Stop reading the stream
+               reject(new Error('Invalid CSV format'));
+
               }
       
-              const urls: Array<string> = inputUrls.split(',').map((url: string) => url.trim());
+              const urls: Array<string> = inputUrls?.split(',').map((url: string) => url.trim());
               images.push({ productName, inputUrls: urls, outputUrls: [] });
             })
             .on('end', () => {
+            if(fs.existsSync(filePath)){
               fs.unlinkSync(filePath); // Clean up uploaded file
               resolve();
+            }
             })
             .on('error', (err) => {
               reject(err);
@@ -44,31 +51,33 @@ export class HandlerInteractor implements IhandlerInteractor{
         });
       
         //  return requestId after CSV validation
-        await this.handlerRepo.imageTaskFinder(requestId, images, webhookUrl);
+        await this.handlerRepo.imageTaskRequest(requestId, images, webhookUrl);
       
-        // here  asynchronously process images
+        // asynchronously process images
         this.processImages(requestId).then((imageTask) => {
-          if (imageTask?.webhookUrl) {
-            axios.post(webhookUrl, {
-              requestId: imageTask.requestId,
-              status: imageTask.status,
-              message: 'Image process completed',
-            }).catch((err) => {
-              console.error('Failed to send webhook:', err.message);
-            });
-          }
+            this.triggerWebhook(imageTask)
         }).catch((err) => {
           console.error('Error processing images:', err.message);
         });
       
         return requestId
+        }catch(error:any){
+          // clean up the file in case of an error
+          if(fs.existsSync(filePath)){
+            fs.unlinkSync(filePath)
+          }
+          // Send error back to the client
+      throw new Error(`Failed to process CSV: ${error.message}`);
+        }
+
       }
       
+// image processor 
 
    async  processImages(requestId:string):Promise<any>{
 console.log('process image called');
 
-        const imageTask:IimageTask|null=await this.handlerRepo.findTaskStatus(requestId)
+        const imageTask:IimageTask|null=await this.handlerRepo.findImageTaskStatus(requestId)
     
         if(!imageTask) return null
         for(let i=0;i<imageTask.images.length;i++ ){
@@ -80,33 +89,50 @@ console.log('process image called');
                     const response= await axios.get(imageTask.images[i].inputUrls[j],{responseType:'arraybuffer'})
                     const inputBuffer=Buffer.from(response.data,'binary')
                     //compress the image by 50%
-
                     const ouputBuffer=await sharp(inputBuffer).jpeg({quality:50}).toBuffer()
 
                     const outPutUrl=`https://example.com/compressed/${uuidv4()}.jpg`
-                     outPutUrls.push(outPutUrl)
-
-        
-                  
+                     outPutUrls.push(outPutUrl) 
                 }catch(error:any){
                     throw new Error(`Failed to process image: ${error.message}`);
 
                 }
                 
             }
-            await this.handlerRepo.updateImageTaskFinder(requestId, i, outPutUrls);
+            await this.handlerRepo.updateImageTask(requestId, i, outPutUrls);
             
         }
 
         return this.handlerRepo.imageTasKStausUpdate(requestId)
 
-
     }
+    // find the status of the each request
   getImageTaskStatus(requestId: string): any{
 
-    return this.handlerRepo.findTaskStatus(requestId)
-       
+    return this.handlerRepo.findImageTaskStatus(requestId)   
 
+  }
+
+
+//  for triggering webhooks
+  async triggerWebhook(imageTask:IimageTask):Promise<void>{
+    try{
+
+   if(imageTask.webhookUrl){
+    console.log('axios ====');
+    
+    await axios.post(imageTask?.webhookUrl,{requestId:imageTask.requestId,status:imageTask.status,message:'Image processing completed'})
+    console.log('webhook trigeered sucessfully');
+   }else{
+    return 
+   }
+      
+    }catch(error){
+      console.log('axios erroroororoor ====');
+      console.log(error)
+      
+
+    }
   }
 
 

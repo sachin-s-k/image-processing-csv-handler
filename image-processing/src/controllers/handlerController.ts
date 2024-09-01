@@ -1,7 +1,5 @@
 import { Request, Response } from "express"
 import { IhandlerInteractor } from "../interfaces/IhandlerInteractor"
-import { v4 as uuidv4 } from 'uuid'
-import { Iimage } from "../interfaces/Iimage"
 import { IimageTask } from "../interfaces/IimageTask"
   
 
@@ -15,26 +13,34 @@ export class HandlerController{
 
      async OnUploadImage(req:Request,res:Response){
 
-     console.log('controller');
+
      
     try{
-        const webhookUrl=req.body.webhookUrl
+
+      if ((req as any). fileValidationError) {
+         return res.status(400).send({ message: (req as any).fileValidationError });
+       }
+        const {webhookUrl}=req.body
+
 
         const requestId= await this.handlerInteractor.csvHandler((req as any).file.path,webhookUrl)
-        console.log(requestId,'reqq');
-        
        return  res.json({requestId})
     }catch(error:any){
-        return res.status(error.message)
+        return res.status(400).json({error:error.message})
     }
 
      }
 
      async OnFindTaskStatus(req:Request,res:Response){
 
-        const {requestId}=req.params
-        const imageTask:IimageTask|null= await this.handlerInteractor.getImageTaskStatus(requestId)
-        return res.json({requestStatus:imageTask?.status})
+    try{
+      const {requestId}=req.params
+      const imageTask:IimageTask|null= await this.handlerInteractor.getImageTaskStatus(requestId)
+      return res.json({requestStatus:imageTask?.status})
+    }
+    catch(error:any){
+      res.status(400).json({error:error.message})
+    }
 
 
      }

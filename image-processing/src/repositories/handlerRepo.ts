@@ -7,28 +7,28 @@ import { IimageTask } from "../interfaces/IimageTask";
 
 export class HandlerRepo implements IhadlerRepo{
 
- async imageTaskFinder(requestId: string, images: Array<Iimage>, webhookUrl: string): Promise<string> {
+ async imageTaskRequest(requestId: string, images: Array<Iimage>, webhookUrl: string): Promise<string> {
     const res=await ImageTask.create({requestId,images,webhookUrl,status:'processing'})
         
-      console.log(res,'res');
-      
      return res.requestId
  }
 
 
-  async  findTaskStatus(requestId: string): Promise<IimageTask|null> {
+  async  findImageTaskStatus(requestId: string): Promise<IimageTask|null> {
 
         const imageTask:IimageTask|null=await ImageTask.findOne({requestId})
+        if(!imageTask){
+            throw new Error(`Image processing with requestId ${requestId} not found.`);
+        }
 
-           return imageTask
+        return imageTask
         
     }
 
-   async  updateImageTaskFinder(requestId:string,index:number,outPutUrls:Array<string>):Promise<IimageTask |null>{
-    console.log('update');
+   async  updateImageTask(requestId:string,index:number,outPutUrls:Array<string>):Promise<IimageTask |null>{
+
     
         const res=await ImageTask.findOneAndUpdate({requestId},{$set:{[`images.${index}.outputUrls`]:outPutUrls}},{new:true,runValidators:true})
-        console.log('update res' ,res);
         
         return res
     }

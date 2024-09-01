@@ -15,7 +15,7 @@ const IimageSchema:Schema<Iimage>=new mongoose.Schema({
 const imageTaskSchema:Schema<IimageTask>=new mongoose.Schema({
 
      requestId:{ type: String, required: true },
-     status:{type:String,default:"pending"},
+     status:{type:String,enum: ['pending', 'processing', 'completed', 'failed'],default:"pending"},
      webhookUrl:{ type: String, required: false },
      images: { type: [IimageSchema], required: true }
 })

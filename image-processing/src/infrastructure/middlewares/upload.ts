@@ -1,5 +1,6 @@
-import multer from "multer"
-
+import multer, { FileFilterCallback } from "multer"
+import path from "path"
+import { Request } from "express"
 const storage = multer.diskStorage({
   
     
@@ -12,5 +13,17 @@ const storage = multer.diskStorage({
       cb(null, file.fieldname + '-' + uniqueSuffix)
     }
   })
+// file Filter to check the csv format
+const csvFilter=(req:any,file:Express.Multer.File,cb:FileFilterCallback):void=>{
+  //check file mimetype and extension
+  if(file.mimetype==='text/csv'||path.extname(file.originalname).toLowerCase()==='.csv'){
+    cb(null,true)//Accept the file
+  }else{
+    cb(null, false)// Reject the file
+     req.fileValidationError = 'Only CSV files are allowed!'
+  }
+}
+
+
   
- export  const upload = multer({ storage: storage })
+ export  const upload = multer({ storage: storage,fileFilter:csvFilter })
