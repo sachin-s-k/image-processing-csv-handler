@@ -15,7 +15,14 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 app.use("/handler", handlerRoutes);
 app.get("/", (req: Request, res: Response) => {
-  res.send("hello this is an Image processing csv handler !");
+  res.json({
+    message: "Hello, welcome to the Image Processing CSV Handler!",
+    developer: "Sachin K Siby",
+    description:
+      "This application handles image processing and CSV file handling.",
+    linkedIn: "https://www.linkedin.com/in/sachin-k-siby/",
+    github: "https://github.com/sachin-s-k",
+  });
 });
 
 app.listen(port, () => {
